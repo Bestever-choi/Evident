@@ -96,12 +96,14 @@ class Hierarchialdet:
         args = get_parser().parse_args()
 
         device = torch.device(f"cuda:{0}" if torch.cuda.is_available() else 'cpu')
-
+        print(device)
+        print("init enum model..")
         config_file = '/opt/app/configs/swintest.py'
         cfg = Config.fromfile(config_file)
         checkpoint_file = '/opt/app/configs/epoch_12.pth'
         self.enum_model = init_detector(cfg, checkpoint_file, device=device)
 
+        print("init model..")
         config_file1 = '/opt/app/configs/dinodisease.py'
         cfg1 = Config.fromfile(config_file1)
         checkpoint_file1 = '/opt/app/configs/epoch_51.pth'
@@ -142,7 +144,6 @@ class Hierarchialdet:
         detection["boxes"] = boxes
 
         output_file = "/output/abnormal-teeth-detection.json"
-        print(detection)
         with open(output_file, "w") as f:
             json.dump(detection, f)
 
