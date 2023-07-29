@@ -2,7 +2,7 @@ import json
 import argparse
 import SimpleITK as sitk
 import glob
-# from mmdet.apis import init_detector, inference_detector
+from mmdet.apis import init_detector, inference_detector
 from mmengine import Config
 import torch
 import math
