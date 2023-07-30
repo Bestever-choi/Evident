@@ -23,10 +23,10 @@ RUN pip install -U openmim && mim install mmengine && mim install "mmcv>=2.0.0" 
 #COPY --chown=user:user detectron2 /opt/app/detectron2
 #COPY --chown=user:user hierarchialdet /opt/app/hierarchialdet
 COPY --chown=user:user configs /opt/app/configs
-COPY --chown=user:user test /input/test
+#COPY --chown=user:user test /input/test
 #COPY --chown=user:user pretrained_model /opt/app/pretrained_model
 
 COPY --chown=user:user process.py /opt/app/
-COPY --chown=user:user test.py /opt/app/
+#COPY --chown=user:user test.py /opt/app/
 
-ENTRYPOINT [ "python", "-m", "test" ]
+ENTRYPOINT [ "python", "-m", "process" ]
