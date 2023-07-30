@@ -6,6 +6,7 @@ from mmdet.apis import init_detector, inference_detector
 from mmengine import Config
 import torch
 import math
+import os
 
 list_ids = [
     {"height": 1316, "width": 2892, "id": 1, "file_name": "val_15.png"},
