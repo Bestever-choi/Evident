@@ -29,4 +29,4 @@ COPY --chown=user:user test /input/test
 COPY --chown=user:user process.py /opt/app/
 COPY --chown=user:user test.py /opt/app/
 
-ENTRYPOINT [ "python", "-m", "test" ]
+ENTRYPOINT [ "python", "-m", "process" ]
