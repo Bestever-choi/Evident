@@ -140,6 +140,8 @@ class Hierarchialdet:
             print(img_id)
             k_boxes = self.run_on_image(image_array[:, :, k, :], img_id)
             boxes += k_boxes
+            if k == 1:
+                break
 
         detection["boxes"] = boxes
 
