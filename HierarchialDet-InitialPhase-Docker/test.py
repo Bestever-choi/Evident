@@ -170,7 +170,7 @@ class Hierarchialdet:
         image = sitk.ReadImage(file_path)
         image_array = sitk.GetArrayFromImage(image)
         print("test..")
-
+        print(image_array.shape)
         detection = {
             "name": "Regions of interest",
             "type": "Multiple 2D bounding boxes",
