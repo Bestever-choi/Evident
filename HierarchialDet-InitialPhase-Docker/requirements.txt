@@ -103,6 +103,7 @@ cloudpickle
 torchvision==0.14.0
 omegaconf
 fairscale
+albumentations
 # The following packages are considered to be unsafe in a requirements file:
 # pip
 # setuptools
