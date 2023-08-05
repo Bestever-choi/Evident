@@ -4,8 +4,18 @@ import SimpleITK as sitk
 import glob
 from mmdet.apis import init_detector, inference_detector
 from mmengine import Config
-import torch
 import math
+import albumentations as A
+from albumentations.pytorch.transforms import ToTensorV2
+from albumentations.core.transforms_interface import ImageOnlyTransform
+import torch.nn.functional as F
+import numpy as np
+from torch import nn
+import timm # PyTorch Image Models
+import torch
+import copy
+import time
+
 
 list_ids = [
     {"height": 1316, "width": 2892, "id": 1, "file_name": "val_15.png"},
@@ -86,6 +96,28 @@ def get_parser():
     return parser
 
 
+class Loginverse(ImageOnlyTransform):
+    def apply(self, img, **params):
+      normalized_image = img / 255.0
+
+      # Set the gamma value for inverse log transform
+      gamma = 1.5 # Adjust the gamma value as needed
+
+      # Apply inverse log transform (power-law transformation)
+      inverse_log_transformed_image = np.power(normalized_image, gamma)
+
+      # Rescale the image back to [0, 255]
+      filtered_image = (inverse_log_transformed_image * 255).astype(np.uint8)
+      return filtered_image
+
+class Transforms:
+    def __init__(self, transforms: A.Compose):
+        self.transforms = transforms
+
+    def __call__(self, img, *args, **kwargs):
+        return self.transforms(image=np.array(img))
+
+
 class Hierarchialdet:
     def __init__(self):
         self.cfg = None
@@ -96,6 +128,7 @@ class Hierarchialdet:
         args = get_parser().parse_args()
 
         device = torch.device(f"cuda:{0}" if torch.cuda.is_available() else 'cpu')
+        self.device = device
         print(device)
         print("init enum model..")
         config_file = '/opt/app/configs/swintest.py'
@@ -116,6 +149,19 @@ class Hierarchialdet:
                         '32', '33', '34', '35', '36', '37', '38', '41', '42', '43', '44', '45', '46', '47', '48']
         self.cat = ['Caries', 'Deep Caries', 'Impacted', 'Periapical Lesion']
         self.cattoid = {'Caries': 1, 'Deep Caries': 3, 'Impacted': 0, 'Periapical Lesion': 2}
+        ##two step###
+        self.test_transform = A.Compose([
+            A.LongestMaxSize(max_size=224, interpolation=1),
+            A.PadIfNeeded(min_height=224, min_width=224, border_mode=0, value=(0, 0, 0)),
+            Loginverse(always_apply=True),
+
+            A.Normalize(mean=0.5, std=0.2, max_pixel_value=255.0, always_apply=True, p=1.0),
+            ToTensorV2()
+        ])
+        self.caries = self.create_model('/opt/app/configs/carieslog.pt').to(device)
+        #self.deepcaries = self.create_model('/opt/app/configs/deepcarieslog1.pt').to(device)
+        self.impacted = self.create_model('/opt/app/configs/impactedlog.pt').to(device)
+        self.peri = self.create_model('/opt/app/configs/pallog.pt').to(device)
 
     def process(self):
         self.setup()
@@ -131,7 +177,8 @@ class Hierarchialdet:
             "boxes": [],
             "version": {"major": 1, "minor": 0}}
         boxes = []
-
+        start_time = time.time()
+        print('start:', start_time)
         for k in range(image_array.shape[2]):
             image_name = "val_{}.png".format(k)
             for input_img in list_ids:
@@ -142,6 +189,7 @@ class Hierarchialdet:
             boxes += k_boxes
             if k == 1:
                 break
+        print('end', time.time()-start_time)
 
         detection["boxes"] = boxes
 
@@ -157,6 +205,7 @@ class Hierarchialdet:
 
         pred_enum = inference_detector(self.enum_model, img)
         pred = pred_enum.pred_instances.cpu().numpy()
+        boxes = []
         for i, score in enumerate(pred.scores[pred.scores > self.Threshold_enum]):
             enum = pred.labels[i]
             if enum - 1 < 32:
@@ -170,9 +219,50 @@ class Hierarchialdet:
             enumeration[str(enum)] = (x_ref, y_ref)
             enumerationscore[str(enum)] = score
 
+            output = {}
+            cat1 = int(enum / 10) - 1
+            cat2 = enum % 10 - 1
+            corners = [[float(bbox[0]), float(bbox[1]), img_id], [float(bbox[0]), float(bbox[3]), img_id],
+                       [float(bbox[2]), float(bbox[1]), img_id], [float(bbox[2]), float(bbox[3]), img_id]]
+
+            bbox_r = [round(i) for i in bbox]
+            crop1 = img[bbox_r[1]:bbox_r[3], bbox_r[0]:bbox_r[2], :]
+            crop = self.test_transform(image=crop1)["image"]
+            cat3 = None
+
+            output['corners'] = corners
+
+            if enum % 10 == 8:
+                psi = self.impacted(crop.to(self.device).unsqueeze(0))
+                psi = F.softmax(psi, dim=1)
+                if psi[0][0] > 0.7:
+                    cat3 = 0
+                    s = psi[0][0]
+                    output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
+                    output['probability'] = float(score * s)
+                    boxes.append(copy.deepcopy(output))
+            else:
+                ps = self.caries(crop.to(self.device).unsqueeze(0))
+                ps = F.softmax(ps, dim=1)
+                if ps[0][0] > 0.5:
+                    temp = ps[0][0]
+                    cat3 = 1
+                    s = temp
+                    output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
+                    output['probability'] = float(score * s)
+                    boxes.append(copy.deepcopy(output))
+
+                psp = self.peri(crop.to(self.device).unsqueeze(0))
+                psp = F.softmax(psp, dim=1)
+                if psp[0][1] > 0.5:
+                    cat3 = 2
+                    s = psp[0][1]
+                    output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
+                    output['probability'] = float(score * s)
+                    boxes.append(copy.deepcopy(output))
+
         new_result = inference_detector(self.model, img)
         pred = new_result.pred_instances.cpu().numpy()
-        boxes = []
         for i, score in enumerate(pred.scores[pred.scores > self.Threshold]):
             output = {}
             bbox = pred.bboxes[i]
@@ -209,6 +299,19 @@ class Hierarchialdet:
 
         return int(closest_keys[0])
 
+    def create_model(self, dir):
+        cariesmodel = timm.create_model('tf_efficientnet_b4_ns',pretrained=True) #load pretrained model
+        #let's update the pretarined model:
+        for param in cariesmodel.parameters():
+            param.requires_grad=True
+
+        cariesmodel.classifier = nn.Sequential(
+          nn.Linear(in_features=1792, out_features=2)
+        )
+        cariesmodel.load_state_dict(torch.load(dir))
+        cariesmodel.eval()
+
+        return cariesmodel
 
 if __name__ == "__main__":
     Hierarchialdet().process()
