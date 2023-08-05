@@ -300,7 +300,7 @@ class Hierarchialdet:
         cariesmodel.classifier = nn.Sequential(
           nn.Linear(in_features=1792, out_features=2)
         )
-        cariesmodel.load_state_dict(torch.load(dir))
+        cariesmodel.load_state_dict(torch.load(dir, map_location=self.device))
         cariesmodel.eval()
 
         return cariesmodel
