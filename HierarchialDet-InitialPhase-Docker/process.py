@@ -292,7 +292,7 @@ class Hierarchialdet:
         return int(closest_keys[0])
 
     def create_model(self, dir):
-        cariesmodel = timm.create_model('tf_efficientnet_b4_ns',pretrained=True) #load pretrained model
+        cariesmodel = timm.create_model('tf_efficientnet_b4_ns',pretrained=False) #load pretrained model
         #let's update the pretarined model:
         for param in cariesmodel.parameters():
             param.requires_grad=True
