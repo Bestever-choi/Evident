@@ -227,53 +227,53 @@ class Hierarchialdet:
             if enum % 10 == 8:
                 psi = self.impacted(crop.to(self.device).unsqueeze(0))
                 psi = F.softmax(psi, dim=1)
-                if psi[0][0] > 0.7:
-                    cat3 = 0
-                    s = psi[0][0]
-                    output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
-                    output['probability'] = float(score * s)
-                    boxes.append(copy.deepcopy(output))
+                # if psi[0][0] > 0.7:
+                cat3 = 0
+                s = psi[0][0]
+                output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
+                output['probability'] = float(score * s)
+                boxes.append(copy.deepcopy(output))
             else:
                 ps = self.caries(crop.to(self.device).unsqueeze(0))
                 ps = F.softmax(ps, dim=1)
-                if ps[0][0] > 0.5:
-                    temp = ps[0][0]
-                    cat3 = 1
-                    s = temp
-                    output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
-                    output['probability'] = float(score * s)
-                    boxes.append(copy.deepcopy(output))
+                # if ps[0][0] > 0.5:
+                temp = ps[0][0]
+                cat3 = 1
+                s = temp
+                output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
+                output['probability'] = float(score * s)
+                boxes.append(copy.deepcopy(output))
 
                 psp = self.peri(crop.to(self.device).unsqueeze(0))
                 psp = F.softmax(psp, dim=1)
-                if psp[0][1] > 0.5:
-                    cat3 = 2
-                    s = psp[0][1]
-                    output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
-                    output['probability'] = float(score * s)
-                    boxes.append(copy.deepcopy(output))
+                # if psp[0][1] > 0.5:
+                cat3 = 2
+                s = psp[0][1]
+                output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
+                output['probability'] = float(score * s)
+                boxes.append(copy.deepcopy(output))
 
-        new_result = inference_detector(self.model, img)
-        pred = new_result.pred_instances.cpu().numpy()
-        for i, score in enumerate(pred.scores[pred.scores > self.Threshold]):
-            output = {}
-            bbox = pred.bboxes[i]
-            x, y = ((bbox[1] + bbox[3]) / 2, (bbox[0] + bbox[2]) / 2)
-            num = self.find_closest_keys(enumeration, (x, y))
-
-            disease = pred.labels[i]
-
-            cat1 = int(num / 10) - 1
-            cat2 = num % 10 - 1
-            cat3 = self.cattoid[self.cat[disease - 1]]
-
-            corners = [[float(bbox[0]), float(bbox[1]), img_id], [float(bbox[0]), float(bbox[3]), img_id],
-                       [float(bbox[2]), float(bbox[1]), img_id], [float(bbox[2]), float(bbox[3]), img_id]]
-            # [x1, y1, image_id], [x2, y2, image_id], [x3, y3, image_id], [x4, y4, image_id]
-            output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
-            output['corners'] = corners
-            output['probability'] = float(score * enumerationscore[str(num)])
-            boxes.append(output)
+        # new_result = inference_detector(self.model, img)
+        # pred = new_result.pred_instances.cpu().numpy()
+        # for i, score in enumerate(pred.scores[pred.scores > self.Threshold]):
+        #     output = {}
+        #     bbox = pred.bboxes[i]
+        #     x, y = ((bbox[1] + bbox[3]) / 2, (bbox[0] + bbox[2]) / 2)
+        #     num = self.find_closest_keys(enumeration, (x, y))
+        #
+        #     disease = pred.labels[i]
+        #
+        #     cat1 = int(num / 10) - 1
+        #     cat2 = num % 10 - 1
+        #     cat3 = self.cattoid[self.cat[disease - 1]]
+        #
+        #     corners = [[float(bbox[0]), float(bbox[1]), img_id], [float(bbox[0]), float(bbox[3]), img_id],
+        #                [float(bbox[2]), float(bbox[1]), img_id], [float(bbox[2]), float(bbox[3]), img_id]]
+        #     # [x1, y1, image_id], [x2, y2, image_id], [x3, y3, image_id], [x4, y4, image_id]
+        #     output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
+        #     output['corners'] = corners
+        #     output['probability'] = float(score * enumerationscore[str(num)])
+        #     boxes.append(output)
 
         return boxes
 
