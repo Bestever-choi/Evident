@@ -1587,6 +1587,7 @@ class Hierarchialdet:
         checkpoint_file = '/opt/app/configs/epoch_12.pth'
         self.enum_model = init_detector(cfg, checkpoint_file, device=device)
 
+        print("init model..")
         config_file1 = '/opt/app/configs/dinodisease.py'
         cfg1 = Config.fromfile(config_file1)
         checkpoint_file1 = '/opt/app/configs/epoch_57.pth'
@@ -1599,8 +1600,8 @@ class Hierarchialdet:
 
         self.Threshold_enum = 0.7
         self.Threshold = 0.05
-        self.Thresholddino = 0.05
-        self.CLASSES = ['11', '12', '13', '14', '15', '16', '17', '18', '21', '22', '23', '24', '25', '26', '27', '28', '31',
+        self.CLASSES = ['11', '12', '13', '14', '15', '16', '17', '18', '21', '22', '23', '24', '25', '26', '27', '28',
+                        '31',
                         '32', '33', '34', '35', '36', '37', '38', '41', '42', '43', '44', '45', '46', '47', '48']
         self.cat = ['Caries', 'Deep Caries', 'Impacted', 'Periapical Lesion']
         self.cattoid = {'Caries': 1, 'Deep Caries': 3, 'Impacted': 0, 'Periapical Lesion': 2}
@@ -1671,52 +1672,6 @@ class Hierarchialdet:
             enumeration[str(enum)] = (x_ref, y_ref)
             enumerationscore[str(enum)] = score
 
-            new_result = inference_detector(self.modeldiff, img)
-            pred = new_result.pred_instances.cpu().numpy()
-            boxes = []
-            for i, score in enumerate(pred.scores[pred.scores > self.Threshold]):
-                output = {}
-                bbox = pred.bboxes[i]
-                x, y = ((bbox[1] + bbox[3]) / 2, (bbox[0] + bbox[2]) / 2)
-                num = self.find_closest_keys(enumeration, (x, y))
-
-                disease = pred.labels[i]
-
-                cat1 = int(num / 10) - 1
-                cat2 = num % 10 - 1
-                cat3 = self.cattoid[self.cat[disease - 1]]
-
-                corners = [[float(bbox[0]), float(bbox[1]), img_id], [float(bbox[0]), float(bbox[3]), img_id],
-                           [float(bbox[2]), float(bbox[1]), img_id], [float(bbox[2]), float(bbox[3]), img_id]]
-                # [x1, y1, image_id], [x2, y2, image_id], [x3, y3, image_id], [x4, y4, image_id]
-                output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
-                output['corners'] = corners
-                output['probability'] = float(score * enumerationscore[str(num)])
-                boxes.append(output)
-
-            new_result = inference_detector(self.model, img)
-            pred = new_result.pred_instances.cpu().numpy()
-
-            for i, score in enumerate(pred.scores[pred.scores < self.Thresholddino]):
-                output = {}
-                bbox = pred.bboxes[i]
-                x, y = ((bbox[1] + bbox[3]) / 2, (bbox[0] + bbox[2]) / 2)
-                num = self.find_closest_keys(enumeration, (x, y))
-
-                disease = pred.labels[i]
-
-                cat1 = int(num / 10) - 1
-                cat2 = num % 10 - 1
-                cat3 = self.cattoid[self.cat[disease - 1]]
-
-                corners = [[float(bbox[0]), float(bbox[1]), img_id], [float(bbox[0]), float(bbox[3]), img_id],
-                           [float(bbox[2]), float(bbox[1]), img_id], [float(bbox[2]), float(bbox[3]), img_id]]
-                # [x1, y1, image_id], [x2, y2, image_id], [x3, y3, image_id], [x4, y4, image_id]
-                output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
-                output['corners'] = corners
-                output['probability'] = float(score * enumerationscore[str(num)])
-                boxes.append(output)
-
             # output = {}
             # cat1 = int(enum / 10) - 1
             # cat2 = enum % 10 - 1
@@ -1733,32 +1688,74 @@ class Hierarchialdet:
             # if enum % 10 == 8:
             #     psi = self.impacted(crop.to(self.device).unsqueeze(0))
             #     psi = F.softmax(psi, dim=1)
-            #     # if psi[0][0] > 0.7:
-            #     cat3 = 0
-            #     s = psi[0][0]
-            #     output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
-            #     output['probability'] = float(score * s)
-            #     boxes.append(copy.deepcopy(output))
+            #     if psi[0][0] > 0.7:
+            #         cat3 = 0
+            #         s = psi[0][0]
+            #         output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
+            #         output['probability'] = float(score * s)
+            #         boxes.append(copy.deepcopy(output))
             # else:
             #     ps = self.caries(crop.to(self.device).unsqueeze(0))
             #     ps = F.softmax(ps, dim=1)
-            #     # if ps[0][0] > 0.5:
-            #     temp = ps[0][0]
-            #     cat3 = 1
-            #     s = temp
-            #     output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
-            #     output['probability'] = float(score * s)
-            #     boxes.append(copy.deepcopy(output))
+            #     if ps[0][0] > 0.5:
+            #         temp = ps[0][0]
+            #         cat3 = 1
+            #         s = temp
+            #         output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
+            #         output['probability'] = float(score * s)
+            #         boxes.append(copy.deepcopy(output))
             #
             #     psp = self.peri(crop.to(self.device).unsqueeze(0))
             #     psp = F.softmax(psp, dim=1)
-            #     # if psp[0][1] > 0.5:
-            #     cat3 = 2
-            #     s = psp[0][1]
-            #     output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
-            #     output['probability'] = float(score * s)
-            #     boxes.append(copy.deepcopy(output))
+            #     if psp[0][1] > 0.5:
+            #         cat3 = 2
+            #         s = psp[0][1]
+            #         output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
+            #         output['probability'] = float(score * s)
+            #         boxes.append(copy.deepcopy(output))
+        new_result_diff = inference_detector(self.modeldiff, img)
+        pred_diff = new_result_diff.pred_instances.cpu().numpy()
+        for i, score in enumerate(pred_diff.scores[pred_diff.scores > self.Threshold]):
+            output = {}
+            bbox = pred_diff.bboxes[i]
+            x, y = ((bbox[1] + bbox[3]) / 2, (bbox[0] + bbox[2]) / 2)
+            num = self.find_closest_keys(enumeration, (x, y))
 
+            disease = pred_diff.labels[i]
+
+            cat1 = int(num / 10) - 1
+            cat2 = num % 10 - 1
+            cat3 = self.cattoid[self.cat[disease - 1]]
+
+            corners = [[float(bbox[0]), float(bbox[1]), img_id], [float(bbox[0]), float(bbox[3]), img_id],
+                       [float(bbox[2]), float(bbox[1]), img_id], [float(bbox[2]), float(bbox[3]), img_id]]
+            # [x1, y1, image_id], [x2, y2, image_id], [x3, y3, image_id], [x4, y4, image_id]
+            output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
+            output['corners'] = corners
+            output['probability'] = float(score * enumerationscore[str(num)])
+            boxes.append(copy.deepcopy(output))
+
+        new_result = inference_detector(self.model, img)
+        pred = new_result.pred_instances.cpu().numpy()
+        for i, score in enumerate(pred.scores[pred.scores < self.Threshold]):
+            output = {}
+            bbox = pred.bboxes[i]
+            x, y = ((bbox[1] + bbox[3]) / 2, (bbox[0] + bbox[2]) / 2)
+            num = self.find_closest_keys(enumeration, (x, y))
+
+            disease = pred.labels[i]
+
+            cat1 = int(num / 10) - 1
+            cat2 = num % 10 - 1
+            cat3 = self.cattoid[self.cat[disease - 1]]
+
+            corners = [[float(bbox[0]), float(bbox[1]), img_id], [float(bbox[0]), float(bbox[3]), img_id],
+                       [float(bbox[2]), float(bbox[1]), img_id], [float(bbox[2]), float(bbox[3]), img_id]]
+            # [x1, y1, image_id], [x2, y2, image_id], [x3, y3, image_id], [x4, y4, image_id]
+            output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
+            output['corners'] = corners
+            output['probability'] = float(score * enumerationscore[str(num)])
+            boxes.append(copy.deepcopy(output))
 
         return boxes
 
