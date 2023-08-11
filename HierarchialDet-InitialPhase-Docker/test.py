@@ -143,10 +143,10 @@ class Hierarchialdet:
         self.model = init_detector(cfg1, checkpoint_file1, device=device)
 
 
-        config_file2 = '/opt/app/configs/dinoswin.py'
-        cfg2 = Config.fromfile(config_file2)
-        checkpoint_file2 = '/opt/app/configs/superbest14800.pth'
-        self.modeldiff = init_detector(cfg2, checkpoint_file2, device=device)
+        # config_file2 = '/opt/app/configs/dinoswin.py'
+        # cfg2 = Config.fromfile(config_file2)
+        # checkpoint_file2 = '/opt/app/configs/superbest14800.pth'
+        # self.modeldiff = init_detector(cfg2, checkpoint_file2, device=device)
 
         self.Threshold_enum = 0.7
         self.Threshold = 0.05
@@ -227,7 +227,7 @@ class Hierarchialdet:
             enumeration[str(enum)] = (x_ref, y_ref)
             enumerationscore[str(enum)] = score
 
-            new_result = inference_detector(self.modeldiff, img)
+            new_result = inference_detector(self.model, img)
             pred = new_result.pred_instances.cpu().numpy()
             boxes = []
             for i, score in enumerate(pred.scores[pred.scores > self.Threshold]):
