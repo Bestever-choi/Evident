@@ -26,7 +26,6 @@ RUN git clone https://github.com/open-mmlab/mmdetection.git /mmdetection \
     && mim install "mmcv>=2.0.0"\
     && cd /mmdetection \
     && pip install --no-cache-dir -e . \
-WORKDIR /opt/app
 
 #COPY --chown=user:user detectron2 /opt/app/detectron2
 #COPY --chown=user:user hierarchialdet /opt/app/hierarchialdet
