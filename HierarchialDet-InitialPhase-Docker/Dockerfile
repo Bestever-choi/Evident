@@ -18,14 +18,14 @@ RUN python -m pip install --user -U pip && python -m pip install --user pip-tool
 
 COPY --chown=user:user requirements.txt /opt/app/
 RUN python -m piptools sync requirements.txt
-#RUN pip install -U openmim && mim install mmengine && mim install "mmcv>=2.0.0" && mim install mmdet
-WORKDIR /mmdetection
-RUN git clone https://github.com/open-mmlab/mmdetection.git /mmdetection \
-    && pip install -U openmim \
-    && mim install mmengine\
-    && mim install "mmcv>=2.0.0"\
-    && cd /mmdetection \
-    && pip install --no-cache-dir -e . \
+RUN pip install -U openmim && mim install mmengine && mim install "mmcv>=2.0.0" && mim install mmdet
+#WORKDIR /mmdetection
+#RUN git clone https://github.com/open-mmlab/mmdetection.git /mmdetection \
+#    && pip install -U openmim \
+#    && mim install mmengine\
+#    && mim install "mmcv>=2.0.0"\
+#    && cd /mmdetection \
+#    && pip install --no-cache-dir -e . \
 
 #COPY --chown=user:user detectron2 /opt/app/detectron2
 #COPY --chown=user:user hierarchialdet /opt/app/hierarchialdet
