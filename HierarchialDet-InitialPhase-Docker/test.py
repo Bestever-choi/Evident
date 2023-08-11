@@ -126,6 +126,7 @@ class Hierarchialdet:
 
     def setup(self):
         args = get_parser().parse_args()
+        self.seed_everything(0)
 
         device = torch.device(f"cuda:{0}" if torch.cuda.is_available() else 'cpu')
         self.device = device
