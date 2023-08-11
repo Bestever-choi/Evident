@@ -24,7 +24,7 @@ RUN git clone https://github.com/open-mmlab/mmdetection.git /mmdetection \
     && pip install -U openmim \
     && mim install mmengine\
     && mim install "mmcv>=2.0.0"\
-    && cd mmdetection \
+    && cd /mmdetection \
     && pip install --no-cache-dir -e . \
 WORKDIR /opt/app
 
