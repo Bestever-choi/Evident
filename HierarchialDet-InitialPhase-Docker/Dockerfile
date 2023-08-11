@@ -19,7 +19,7 @@ RUN python -m pip install --user -U pip && python -m pip install --user pip-tool
 COPY --chown=user:user requirements.txt /opt/app/
 RUN python -m piptools sync requirements.txt
 #RUN pip install -U openmim && mim install mmengine && mim install "mmcv>=2.0.0" && mim install mmdet
-RUN git clone https://github.com/open-mmlab/mmdetection.git \
+RUN git clone https://github.com/open-mmlab/mmdetection.git /mmdetection \
     && pip install -U openmim \
     && mim install mmengine\
     && mim install "mmcv>=2.0.0"\
