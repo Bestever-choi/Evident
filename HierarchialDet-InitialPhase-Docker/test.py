@@ -139,7 +139,7 @@ class Hierarchialdet:
         print("init model..")
         config_file1 = '/opt/app/configs/dinodisease.py'
         cfg1 = Config.fromfile(config_file1)
-        checkpoint_file1 = '/opt/app/configs/epoch_51.pth'
+        checkpoint_file1 = '/opt/app/configs/epoch_57.pth'
         self.model = init_detector(cfg1, checkpoint_file1, device=device)
 
 
@@ -195,7 +195,7 @@ class Hierarchialdet:
             print(img_id)
             k_boxes = self.run_on_image(image_array[:, :, k, :], img_id)
             boxes += k_boxes
-            if k == 1:
+            if k == 0:
                 break
         print('end', time.time()-start_time)
 
@@ -250,28 +250,28 @@ class Hierarchialdet:
                 output['probability'] = float(score * enumerationscore[str(num)])
                 boxes.append(output)
 
-            new_result = inference_detector(self.model, img)
-            pred = new_result.pred_instances.cpu().numpy()
-
-            for i, score in enumerate(pred.scores[pred.scores < self.Thresholddino]):
-                output = {}
-                bbox = pred.bboxes[i]
-                x, y = ((bbox[1] + bbox[3]) / 2, (bbox[0] + bbox[2]) / 2)
-                num = self.find_closest_keys(enumeration, (x, y))
-
-                disease = pred.labels[i]
-
-                cat1 = int(num / 10) - 1
-                cat2 = num % 10 - 1
-                cat3 = self.cattoid[self.cat[disease - 1]]
-
-                corners = [[float(bbox[0]), float(bbox[1]), img_id], [float(bbox[0]), float(bbox[3]), img_id],
-                           [float(bbox[2]), float(bbox[1]), img_id], [float(bbox[2]), float(bbox[3]), img_id]]
-                # [x1, y1, image_id], [x2, y2, image_id], [x3, y3, image_id], [x4, y4, image_id]
-                output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
-                output['corners'] = corners
-                output['probability'] = float(score * enumerationscore[str(num)])
-                boxes.append(output)
+            # new_result = inference_detector(self.model, img)
+            # pred = new_result.pred_instances.cpu().numpy()
+            #
+            # for i, score in enumerate(pred.scores[pred.scores < self.Thresholddino]):
+            #     output = {}
+            #     bbox = pred.bboxes[i]
+            #     x, y = ((bbox[1] + bbox[3]) / 2, (bbox[0] + bbox[2]) / 2)
+            #     num = self.find_closest_keys(enumeration, (x, y))
+            #
+            #     disease = pred.labels[i]
+            #
+            #     cat1 = int(num / 10) - 1
+            #     cat2 = num % 10 - 1
+            #     cat3 = self.cattoid[self.cat[disease - 1]]
+            #
+            #     corners = [[float(bbox[0]), float(bbox[1]), img_id], [float(bbox[0]), float(bbox[3]), img_id],
+            #                [float(bbox[2]), float(bbox[1]), img_id], [float(bbox[2]), float(bbox[3]), img_id]]
+            #     # [x1, y1, image_id], [x2, y2, image_id], [x3, y3, image_id], [x4, y4, image_id]
+            #     output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
+            #     output['corners'] = corners
+            #     output['probability'] = float(score * enumerationscore[str(num)])
+            #     boxes.append(output)
 
         return boxes
 

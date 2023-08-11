@@ -1589,7 +1589,7 @@ class Hierarchialdet:
 
         config_file1 = '/opt/app/configs/dinodisease.py'
         cfg1 = Config.fromfile(config_file1)
-        checkpoint_file1 = '/opt/app/configs/epoch_51.pth'
+        checkpoint_file1 = '/opt/app/configs/epoch_57.pth'
         self.model = init_detector(cfg1, checkpoint_file1, device=device)
 
         config_file2 = '/opt/app/configs/dinoswin.py'
