@@ -1636,7 +1636,7 @@ class Hierarchialdet:
         start_time = time.time()
         print('start:', start_time)
         for k in range(image_array.shape[2]):
-            image_name = "val_{}.png".format(k)
+            image_name = "test_{}.png".format(k)
             for input_img in list_ids:
                 if input_img["file_name"] == image_name:
                     img_id = input_img["id"]
