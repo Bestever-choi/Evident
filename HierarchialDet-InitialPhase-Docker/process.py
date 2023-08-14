@@ -1606,18 +1606,18 @@ class Hierarchialdet:
         self.cat = ['Caries', 'Deep Caries', 'Impacted', 'Periapical Lesion']
         self.cattoid = {'Caries': 1, 'Deep Caries': 3, 'Impacted': 0, 'Periapical Lesion': 2}
         ##two step###
-        # self.test_transform = A.Compose([
-        #     A.LongestMaxSize(max_size=224, interpolation=1),
-        #     A.PadIfNeeded(min_height=224, min_width=224, border_mode=0, value=(0, 0, 0)),
-        #     Loginverse(always_apply=True),
-        #
-        #     A.Normalize(mean=0.5, std=0.2, max_pixel_value=255.0, always_apply=True, p=1.0),
-        #     ToTensorV2()
-        # ])
-        # self.caries = self.create_model('/opt/app/configs/carieslog.pt').to(device)
-        # #self.deepcaries = self.create_model('/opt/app/configs/deepcarieslog1.pt').to(device)
-        # self.impacted = self.create_model('/opt/app/configs/impactedlog.pt').to(device)
-        # self.peri = self.create_model('/opt/app/configs/pallog.pt').to(device)
+        self.test_transform = A.Compose([
+            A.LongestMaxSize(max_size=224, interpolation=1),
+            A.PadIfNeeded(min_height=224, min_width=224, border_mode=0, value=(0, 0, 0)),
+            Loginverse(always_apply=True),
+
+            A.Normalize(mean=0.5, std=0.2, max_pixel_value=255.0, always_apply=True, p=1.0),
+            ToTensorV2()
+        ])
+        self.caries = self.create_model('/opt/app/configs/carieslog.pt').to(device)
+        #self.deepcaries = self.create_model('/opt/app/configs/deepcarieslog1.pt').to(device)
+        self.impacted = self.create_model('/opt/app/configs/impactedlog.pt').to(device)
+        self.peri = self.create_model('/opt/app/configs/pallog.pt').to(device)
 
     def process(self):
         self.setup()
@@ -1672,47 +1672,46 @@ class Hierarchialdet:
             enumeration[str(enum)] = (x_ref, y_ref)
             enumerationscore[str(enum)] = score
 
-            # output = {}
-            # cat1 = int(enum / 10) - 1
-            # cat2 = enum % 10 - 1
-            # corners = [[float(bbox[0]), float(bbox[1]), img_id], [float(bbox[0]), float(bbox[3]), img_id],
-            #            [float(bbox[2]), float(bbox[1]), img_id], [float(bbox[2]), float(bbox[3]), img_id]]
-            #
-            # bbox_r = [round(i) for i in bbox]
-            # crop1 = img[bbox_r[1]:bbox_r[3], bbox_r[0]:bbox_r[2], :]
-            # crop = self.test_transform(image=crop1)["image"]
-            # cat3 = None
-            #
-            # output['corners'] = corners
-            #
-            # if enum % 10 == 8:
-            #     psi = self.impacted(crop.to(self.device).unsqueeze(0))
-            #     psi = F.softmax(psi, dim=1)
-            #     if psi[0][0] > 0.7:
-            #         cat3 = 0
-            #         s = psi[0][0]
-            #         output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
-            #         output['probability'] = float(score * s)
-            #         boxes.append(copy.deepcopy(output))
-            # else:
-            #     ps = self.caries(crop.to(self.device).unsqueeze(0))
-            #     ps = F.softmax(ps, dim=1)
-            #     if ps[0][0] > 0.5:
-            #         temp = ps[0][0]
-            #         cat3 = 1
-            #         s = temp
-            #         output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
-            #         output['probability'] = float(score * s)
-            #         boxes.append(copy.deepcopy(output))
-            #
-            #     psp = self.peri(crop.to(self.device).unsqueeze(0))
-            #     psp = F.softmax(psp, dim=1)
-            #     if psp[0][1] > 0.5:
-            #         cat3 = 2
-            #         s = psp[0][1]
-            #         output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
-            #         output['probability'] = float(score * s)
-            #         boxes.append(copy.deepcopy(output))
+            output = {}
+            cat1 = int(enum / 10) - 1
+            cat2 = enum % 10 - 1
+            corners = [[float(bbox[0]), float(bbox[1]), img_id], [float(bbox[0]), float(bbox[3]), img_id],
+                       [float(bbox[2]), float(bbox[1]), img_id], [float(bbox[2]), float(bbox[3]), img_id]]
+
+            bbox_r = [round(i) for i in bbox]
+            crop1 = img[bbox_r[1]:bbox_r[3], bbox_r[0]:bbox_r[2], :]
+            crop = self.test_transform(image=crop1)["image"]
+
+            output['corners'] = corners
+
+            if enum % 10 == 8:
+                psi = self.impacted(crop.to(self.device).unsqueeze(0))
+                psi = F.softmax(psi, dim=1)
+                if psi[0][0] > 0.7:
+                    cat3 = 0
+                    s = psi[0][0]
+                    output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
+                    output['probability'] = float(score * s)
+                    boxes.append(copy.deepcopy(output))
+            else:
+                ps = self.caries(crop.to(self.device).unsqueeze(0))
+                ps = F.softmax(ps, dim=1)
+                if ps[0][0] > 0.5:
+                    cat3 = 1
+                    s = ps[0][0]
+                    output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
+                    output['probability'] = float(score * s)
+                    boxes.append(copy.deepcopy(output))
+
+                psp = self.peri(crop.to(self.device).unsqueeze(0))
+                psp = F.softmax(psp, dim=1)
+                if psp[0][1] > 0.5:
+                    cat3 = 2
+                    s = psp[0][1]
+                    output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
+                    output['probability'] = float(score * s)
+                    boxes.append(copy.deepcopy(output))
+
         new_result_diff = inference_detector(self.modeldiff, img)
         pred_diff = new_result_diff.pred_instances.cpu().numpy()
         for i, score in enumerate(pred_diff.scores[pred_diff.scores > self.Threshold]):
