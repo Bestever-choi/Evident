@@ -72,6 +72,7 @@ list_ids = [
                           {"height": 1504, "width": 2872, "id": 50, "file_name": "val_0.png"},
                       ]
 
+
 def get_parser():
     parser = argparse.ArgumentParser(description="Detectron2 demo for builtin configs")
     parser.add_argument(
@@ -222,45 +223,45 @@ class Hierarchialdet:
             enumeration[str(enum)] = (x_ref, y_ref)
             enumerationscore[str(enum)] = score
 
-            output = {}
-            cat1 = int(enum / 10) - 1
-            cat2 = enum % 10 - 1
-            corners = [[float(bbox[0]), float(bbox[1]), img_id], [float(bbox[0]), float(bbox[3]), img_id],
-                       [float(bbox[2]), float(bbox[1]), img_id], [float(bbox[2]), float(bbox[3]), img_id]]
-
-            bbox_r = [round(i) for i in bbox]
-            crop1 = img[bbox_r[1]:bbox_r[3], bbox_r[0]:bbox_r[2], :]
-            crop = self.test_transform(image=crop1)["image"]
-
-            output['corners'] = corners
-
-            if enum % 10 == 8:
-                psi = self.impacted(crop.to(self.device).unsqueeze(0))
-                psi = F.softmax(psi, dim=1)
-                if psi[0][0] > 0.7:
-                    cat3 = 0
-                    s = psi[0][0]
-                    output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
-                    output['probability'] = float(score * s)
-                    boxes.append(copy.deepcopy(output))
-            else:
-                ps = self.caries(crop.to(self.device).unsqueeze(0))
-                ps = F.softmax(ps, dim=1)
-                if ps[0][0] > 0.5:
-                    cat3 = 1
-                    s = ps[0][0]
-                    output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
-                    output['probability'] = float(score * s)
-                    boxes.append(copy.deepcopy(output))
-
-                psp = self.peri(crop.to(self.device).unsqueeze(0))
-                psp = F.softmax(psp, dim=1)
-                if psp[0][1] > 0.5:
-                    cat3 = 2
-                    s = psp[0][1]
-                    output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
-                    output['probability'] = float(score * s)
-                    boxes.append(copy.deepcopy(output))
+            # output = {}
+            # cat1 = int(enum / 10) - 1
+            # cat2 = enum % 10 - 1
+            # corners = [[float(bbox[0]), float(bbox[1]), img_id], [float(bbox[0]), float(bbox[3]), img_id],
+            #            [float(bbox[2]), float(bbox[1]), img_id], [float(bbox[2]), float(bbox[3]), img_id]]
+            #
+            # bbox_r = [round(i) for i in bbox]
+            # crop1 = img[bbox_r[1]:bbox_r[3], bbox_r[0]:bbox_r[2], :]
+            # crop = self.test_transform(image=crop1)["image"]
+            #
+            # output['corners'] = corners
+            #
+            # if enum % 10 == 8:
+            #     psi = self.impacted(crop.to(self.device).unsqueeze(0))
+            #     psi = F.softmax(psi, dim=1)
+            #     if psi[0][0] > 0.7:
+            #         cat3 = 0
+            #         s = psi[0][0]
+            #         output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
+            #         output['probability'] = float(score * s)
+            #         boxes.append(copy.deepcopy(output))
+            # else:
+            #     ps = self.caries(crop.to(self.device).unsqueeze(0))
+            #     ps = F.softmax(ps, dim=1)
+            #     if ps[0][0] > 0.5:
+            #         cat3 = 1
+            #         s = ps[0][0]
+            #         output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
+            #         output['probability'] = float(score * s)
+            #         boxes.append(copy.deepcopy(output))
+            #
+            #     psp = self.peri(crop.to(self.device).unsqueeze(0))
+            #     psp = F.softmax(psp, dim=1)
+            #     if psp[0][1] > 0.5:
+            #         cat3 = 2
+            #         s = psp[0][1]
+            #         output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
+            #         output['probability'] = float(score * s)
+            #         boxes.append(copy.deepcopy(output))
 
         new_result_diff = inference_detector(self.modeldiff, img)
         pred_diff = new_result_diff.pred_instances.cpu().numpy()
