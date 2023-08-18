@@ -1731,7 +1731,7 @@ class Hierarchialdet:
             # [x1, y1, image_id], [x2, y2, image_id], [x3, y3, image_id], [x4, y4, image_id]
             output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
             output['corners'] = corners
-            output['probability'] = float(score * enumerationscore[str(num)])
+            output['probability'] = float(score)
             boxes.append(copy.deepcopy(output))
 
         new_result = inference_detector(self.model, img)
@@ -1753,7 +1753,7 @@ class Hierarchialdet:
             # [x1, y1, image_id], [x2, y2, image_id], [x3, y3, image_id], [x4, y4, image_id]
             output['name'] = str(cat1) + '-' + str(cat2) + '-' + str(cat3)
             output['corners'] = corners
-            output['probability'] = float(score * enumerationscore[str(num)])
+            output['probability'] = float(score)
             boxes.append(copy.deepcopy(output))
 
         return boxes
