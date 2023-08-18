@@ -1598,8 +1598,8 @@ class Hierarchialdet:
         checkpoint_file2 = '/opt/app/configs/superbest15400.pth'
         self.modeldiff = init_detector(cfg2, checkpoint_file2, device=device)
 
-        self.Threshold_enum = 0.7
-        self.Threshold = 0.01
+        self.Threshold_enum = 0.5
+        self.Threshold = 0.05
         self.CLASSES = ['11', '12', '13', '14', '15', '16', '17', '18', '21', '22', '23', '24', '25', '26', '27', '28',
                         '31',
                         '32', '33', '34', '35', '36', '37', '38', '41', '42', '43', '44', '45', '46', '47', '48']
@@ -1669,9 +1669,9 @@ class Hierarchialdet:
             enum = int(enum)
             bbox = pred.bboxes[i]
             x_ref, y_ref = ((bbox[1] + bbox[3]) / 2, (bbox[0] + bbox[2]) / 2)
-            enumeration[str(enum)] = (x_ref, y_ref)
-            enumerationscore[str(enum)] = score
-
+            if score > enumerationscore.get(str(enum), 0.0):
+              enumeration[str(enum)] = (x_ref, y_ref)
+              enumerationscore[str(enum)] = score
             # output = {}
             # cat1 = int(enum / 10) - 1
             # cat2 = enum % 10 - 1
