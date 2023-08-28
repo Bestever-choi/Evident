@@ -1582,9 +1582,9 @@ class Hierarchialdet:
         self.device = device
         print(device)
         print("init enum model..")
-        config_file = '/opt/app/configs/swintest.py'
+        config_file = '/opt/app/configs/swinenum.py'
         cfg = Config.fromfile(config_file)
-        checkpoint_file = '/opt/app/configs/epoch_12.pth'
+        checkpoint_file = '/opt/app/configs/epoch_42.pth'
         self.enum_model = init_detector(cfg, checkpoint_file, device=device)
 
         print("init model..")
