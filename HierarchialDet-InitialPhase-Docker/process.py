@@ -1595,7 +1595,7 @@ class Hierarchialdet:
 
         config_file2 = '/opt/app/configs/dinoswin.py'
         cfg2 = Config.fromfile(config_file2)
-        checkpoint_file2 = '/opt/app/configs/superbest15400.pth'
+        checkpoint_file2 = '/opt/app/configs/superbest14800.pth'
         self.modeldiff = init_detector(cfg2, checkpoint_file2, device=device)
 
         self.Threshold_enum = 0.5
